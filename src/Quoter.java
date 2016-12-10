@@ -1,3 +1,4 @@
+import javafx.application.Application;
 import org.openqa.selenium.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -10,8 +11,26 @@ import java.net.URL;
 import java.util.Scanner;
 
 public class Quoter {
+    private static boolean isGUI = true;
+    private static QuoterGUI quoterGUI;
 
     public static void main(String[] args) throws MalformedURLException{
+        if(args.length != 0){
+            if(args[0].equalsIgnoreCase("-c")){
+                isGUI = false;
+                commandLineQuoter();
+            } else {
+                System.err.println("Invalid argument");
+                System.err.println("Usage: java -jar Quoter [-c]");
+                System.exit(1);
+            }
+        } else {
+            quoterGUI = new QuoterGUI();
+            Application.launch(quoterGUI.getClass(), args);
+        }
+    }
+
+    private static void commandLineQuoter(){
         Scanner in = new Scanner(System.in);
         System.out.print("Enter webpage: ");
         String webpage = in.next();
@@ -19,14 +38,23 @@ public class Quoter {
         in = new Scanner(System.in);
         String searchQuote = in.nextLine();
 
+        beginSearch(webpage, searchQuote);
+    }
+
+    public static void beginSearch(String webpage, String searchQuote){
         WebDriver driver = new ChromeDriver();
         try{
             String text = openPage(driver, webpage);
             search(text, searchQuote, webpage);
         } catch (WebDriverException e){
-            System.err.println("Bad URL. Make sure URL's have http://www. at the beginning");
+            String warning = "Bad URL. Make sure URL's have http://www. at the beginning";
+            System.err.println(warning);
             driver.quit();
-            System.exit(1);
+            if(isGUI){
+                quoterGUI.setWarning(warning);
+            } else {
+                System.exit(1);
+            }
         } finally {
             driver.quit();
         }
@@ -69,10 +97,19 @@ public class Quoter {
                 }
             }
             finalQuote += "\" - " + webpage;
-            System.out.println(finalQuote);
-            System.out.println("Total Variance: " + amount + " words.");
+            if(isGUI){
+                quoterGUI.setQuote(finalQuote);
+                quoterGUI.setVariance(amount + " words.");
+            } else {
+                System.out.println(finalQuote);
+                System.out.println("Total Variance: " + amount + " words.");
+            }
         } else {
-            System.out.println(webpage + " never said that.");
+            if(isGUI){
+                quoterGUI.setQuote(webpage + " never said that.");
+            } else {
+                System.out.println(webpage + " never said that.");
+            }
         }
     }
 
@@ -83,9 +120,5 @@ public class Quoter {
         text = text.replaceAll(",", " ");
         return text.replaceAll("\\s+"," ");
     }
-
-    // A study has found that angry employees are far less likely to act unethically
-    // A...study has found that angry employees are...far less likely to act
-    // A UA study has found that angry employees are more likely to engage in unethical behavior, while employees who feel guilty are far less likely to act unethically.
 
 }
