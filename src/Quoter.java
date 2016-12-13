@@ -42,8 +42,14 @@ public class Quoter {
     }
 
     public static void beginSearch(String webpage, String searchQuote){
-        WebDriver driver = new ChromeDriver();
+        System.setProperty("webdriver.chrome.driver", "Driver/chromedriver.exe");
+        WebDriver driver = new ChromeDriver(DesiredCapabilities.chrome());
         try{
+            if(!webpage.contains("www.")){
+                webpage = "http://www." + webpage;
+            } else if(!webpage.contains("http://") && !webpage.contains("https://")){
+                webpage = "http://" + webpage;
+            }
             String text = openPage(driver, webpage);
             search(text, searchQuote, webpage);
         } catch (WebDriverException e){
